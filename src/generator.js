@@ -4,11 +4,29 @@ import { ensureEmptyTargetDir, copyIfExists } from './utils/fs.js';
 import { resolveTemplateRepos } from './utils/sources.js';
 import { findManifestById } from './utils/templates.js';
 
-function matchCsmaTemplateId(options) {
-  if (options.architecture === 'csma-ssma') {
+function resolveCsmaTemplateId(options, manifests = []) {
+  const available = new Set((manifests || []).map((manifest) => manifest.templateId));
+  const has = (templateId) => available.has(templateId);
+
+  const platformSpecific = {
+    capacitor: 'csma-capacitor-shell',
+    neutralino: 'csma-neutralino-shell'
+  };
+
+  const byPlatform = options.platform ? platformSpecific[options.platform] : null;
+  if (byPlatform && has(byPlatform)) {
+    return byPlatform;
+  }
+
+  if (options.architecture === 'csma-ssma' && has('csma-web-plus-ssma-client')) {
     return 'csma-web-plus-ssma-client';
   }
-  return 'csma-base-web';
+
+  if (has('csma-base-web')) {
+    return 'csma-base-web';
+  }
+
+  return manifests[0]?.templateId || null;
 }
 
 function matchSsmTemplateId(options) {
@@ -331,9 +349,10 @@ export async function generateProject(options, rootDir, baseDir = process.cwd())
   const targetDir = await ensureEmptyTargetDir(baseDir, options.projectName);
   const { csmaRoot, ssmaRoot } = await resolveTemplateRepos(options, rootDir);
 
+  const csmaTemplateId = resolveCsmaTemplateId(options, options.templateCatalog.manifests.csma);
   const csmaManifest = options.architecture === 'ssma'
     ? null
-    : findManifestById(options.templateCatalog.manifests.csma, matchCsmaTemplateId(options));
+    : findManifestById(options.templateCatalog.manifests.csma, csmaTemplateId);
 
   const ssmaManifest = options.architecture === 'csma'
     ? null

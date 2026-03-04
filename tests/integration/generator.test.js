@@ -69,4 +69,30 @@ describe('generateProject integration', () => {
       await fs.remove(workspace);
     }
   }, 20000);
+
+  it('selects platform-specific CSMA template when platform manifest exists', async () => {
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'cli-int-'));
+    const options = {
+      projectName: 'app-capacitor',
+      description: 'test',
+      architecture: 'csma',
+      templateSource: 'local',
+      csmaPath: csmaRoot,
+      ssmaPath: ssmaRoot,
+      modules: [],
+      components: [],
+      patterns: [],
+      platform: 'capacitor',
+      includeExamples: false,
+      agentConfig: 'none'
+    };
+    options.templateCatalog = await loadTemplateCatalog(options, cliRoot);
+
+    try {
+      const { targetDir } = await generateProject(options, cliRoot, workspace);
+      expect(await fs.pathExists(path.join(targetDir, 'platforms', 'mobile-capacitor', 'capacitor.config.json'))).toBe(true);
+    } finally {
+      await fs.remove(workspace);
+    }
+  }, 20000);
 });

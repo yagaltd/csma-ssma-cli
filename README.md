@@ -24,6 +24,7 @@ csma-ssma
 - `--template-ref <tag|branch|sha>`
 - `--project-name <name>`
 - `--architecture <csma|ssma|csma-ssma>`
+- `--platform <web|capacitor|neutralino>`
 - `--agent-config <claude|agents|both|none>` (default: `both`)
 - `--ssma-store <none|file|sqlite>`
 - `--include-toy-backend` (SSMA JS simulator example)
@@ -36,6 +37,7 @@ csma-ssma
 - Generated CSMA scaffolds are starter-focused:
   - component showcase/docs pages are removed by default
   - template docs/source demo pages are not copied into the generated app
+  - platform-specific shells are selected automatically when matching manifests exist (`capacitor`, `neutralino`)
 
 ## Module Selection Rules
 

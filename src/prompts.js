@@ -107,7 +107,7 @@ export async function askProjectInfo(baseOptions, rootDir) {
       patterns: architecture === 'ssma' ? [] : [],
       platform: architecture === 'ssma'
         ? undefined
-        : (catalog.csma.platforms[0]?.value || 'web'),
+        : (baseOptions.platform || catalog.csma.platforms[0]?.value || 'web'),
       includeExamples: false,
       agentConfig: baseOptions.agentConfig || 'both',
       templateCatalog: catalog
@@ -223,7 +223,8 @@ export async function askProjectInfo(baseOptions, rootDir) {
         message: 'Platform:',
         choices: catalog.csma.platforms.length > 0
           ? catalog.csma.platforms
-          : [{ name: 'web', value: 'web' }]
+          : [{ name: 'web', value: 'web' }],
+        default: baseOptions.platform || undefined
       },
       {
         type: 'confirm',
