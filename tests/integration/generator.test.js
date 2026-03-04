@@ -37,4 +37,36 @@ describe('generateProject integration', () => {
       await fs.remove(workspace);
     }
   }, 20000);
+
+  it('copies CLAUDE.md and AGENTS.md from CLI root when requested', async () => {
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'cli-int-'));
+    const options = {
+      projectName: 'app-docs',
+      description: 'test',
+      architecture: 'csma',
+      templateSource: 'local',
+      csmaPath: csmaRoot,
+      ssmaPath: ssmaRoot,
+      modules: [],
+      components: [],
+      patterns: [],
+      platform: 'web',
+      includeExamples: false,
+      agentConfig: 'both'
+    };
+    options.templateCatalog = await loadTemplateCatalog(options, cliRoot);
+
+    try {
+      const { targetDir } = await generateProject(options, cliRoot, workspace);
+      const generatedClaude = await fs.readFile(path.join(targetDir, 'CLAUDE.md'), 'utf8');
+      const generatedAgents = await fs.readFile(path.join(targetDir, 'AGENTS.md'), 'utf8');
+      const sourceClaude = await fs.readFile(path.join(cliRoot, 'CLAUDE.md'), 'utf8');
+      const sourceAgents = await fs.readFile(path.join(cliRoot, 'AGENTS.md'), 'utf8');
+
+      expect(generatedClaude).toBe(sourceClaude);
+      expect(generatedAgents).toBe(sourceAgents);
+    } finally {
+      await fs.remove(workspace);
+    }
+  }, 20000);
 });

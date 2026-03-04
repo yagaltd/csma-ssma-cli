@@ -3,8 +3,6 @@ import fs from 'fs-extra';
 import { ensureEmptyTargetDir, copyIfExists } from './utils/fs.js';
 import { resolveTemplateRepos } from './utils/sources.js';
 import { findManifestById } from './utils/templates.js';
-import { renderClaudeMd } from './templates/claude-md.js';
-import { renderAgentsMd } from './templates/agents-md.js';
 
 function matchCsmaTemplateId(options) {
   if (options.architecture === 'csma-ssma') {
@@ -231,12 +229,16 @@ if (import.meta.url === window.location.href) {
   await fs.writeFile(path.join(targetDir, 'src', 'main.js'), content);
 }
 
-async function writeSsmaEnv(options, targetDir) {
+async function writeSsmaEnvExample(options, targetDir) {
   const adapterLine = options.ssmaStore && options.ssmaStore !== 'none'
     ? `SSMA_OPTIMISTIC_ADAPTER=${options.ssmaStore}`
     : '# SSMA_OPTIMISTIC_ADAPTER is not set (configure manually)';
 
-  const content = `PORT=3000
+  const content = `# Copy this file to .env and configure values for your environment.
+# Example:
+#   cp .env.example .env
+
+PORT=3000
 HOST=localhost
 ${adapterLine}
 JWT_SECRET=change-me-in-production
@@ -246,7 +248,8 @@ CORS_ORIGIN=http://localhost:5173
 RATE_LIMIT_WINDOW_MS=60000
 RATE_LIMIT_MAX_REQUESTS=100
 `;
-  await fs.writeFile(path.join(targetDir, 'ssma', '.env'), content);
+  await fs.remove(path.join(targetDir, 'ssma', '.env'));
+  await fs.writeFile(path.join(targetDir, 'ssma', '.env.example'), content);
 }
 
 async function filterSsmaExamples(options, targetDir) {
@@ -256,13 +259,34 @@ async function filterSsmaExamples(options, targetDir) {
   await fs.remove(path.join(targetDir, 'ssma', 'examples', 'toy-backend'));
 }
 
-async function writeAgentDocs(options, targetDir) {
-  if (options.agentConfig === 'claude' || options.agentConfig === 'both') {
-    await fs.writeFile(path.join(targetDir, 'CLAUDE.md'), renderClaudeMd(options));
+async function pruneEmptyDirs(rootDir) {
+  const entries = await fs.readdir(rootDir, { withFileTypes: true });
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const full = path.join(rootDir, entry.name);
+    await pruneEmptyDirs(full);
+    const remaining = await fs.readdir(full);
+    if (remaining.length === 0) {
+      await fs.remove(full);
+    }
   }
-  if (options.agentConfig === 'agents' || options.agentConfig === 'both') {
-    await fs.writeFile(path.join(targetDir, 'AGENTS.md'), renderAgentsMd(options));
+}
+
+async function copyAgentDocIfSelected(rootDir, targetDir, selection, optionName, sourceName, outputName) {
+  if (selection !== optionName && selection !== 'both') {
+    return;
   }
+  const source = path.join(rootDir, sourceName);
+  if (!(await fs.pathExists(source))) {
+    throw new Error(`Missing required file for --agent-config ${optionName}: ${sourceName}`);
+  }
+  await fs.copyFile(source, path.join(targetDir, outputName));
+}
+
+async function writeAgentDocs(options, rootDir, targetDir) {
+  const selection = options.agentConfig || 'both';
+  await copyAgentDocIfSelected(rootDir, targetDir, selection, 'claude', 'CLAUDE.md', 'CLAUDE.md');
+  await copyAgentDocIfSelected(rootDir, targetDir, selection, 'agents', 'AGENTS.md', 'AGENTS.md');
 }
 
 async function writeRootPackageJson(options, targetDir) {
@@ -349,11 +373,12 @@ export async function generateProject(options, rootDir, baseDir = process.cwd())
     await fs.move(path.join(tempRuntime, runtimeFolder), path.join(targetDir, 'ssma'), { overwrite: true });
     await fs.remove(tempRuntime);
     await filterSsmaExamples(options, targetDir);
-    await writeSsmaEnv(options, targetDir);
+    await writeSsmaEnvExample(options, targetDir);
   }
 
-  await writeAgentDocs(options, targetDir);
+  await writeAgentDocs(options, rootDir, targetDir);
   await writeRootPackageJson(options, targetDir);
+  await pruneEmptyDirs(targetDir);
 
   return { targetDir };
 }
