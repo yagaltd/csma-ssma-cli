@@ -1,88 +1,54 @@
 # csma-ssma-cli
 
-CLI orchestration tool for scaffolding projects from template-first `CSMA` and `SSMA` repositories.
+Interactive scaffolder for CSMA/SSMA projects.
 
-## Install (local dev)
+## Local Install
 
 ```bash
-cd CLI
+cd /home/aurel/Documents/CSMA-SSMA/CLI
 npm install
 npm link
 ```
 
-Then run:
+## Run (Interactive)
 
 ```bash
 csma-ssma
 ```
 
-## Options
+The CLI prompts for architecture, runtime, platform, modules, and output project name.
 
-- `--template-source <local|github>`
-- `--csma-path <path>`
-- `--ssma-path <path>`
-- `--csma-repo <owner/repo>` (GitHub mode)
-- `--ssma-repo <owner/repo>` (GitHub mode)
-- `--template-ref <tag|branch|sha>`
-- `--project-name <name>`
-- `--architecture <csma|ssma|csma-ssma>`
-- `--platform <web|capacitor|neutralino>`
-- `--agent-config <claude|agents|both|none>` (default: `both`)
-- `--ssma-store <none|file|sqlite>`
-- `--include-toy-backend` (SSMA JS simulator example)
-- `--yes` (non-interactive defaults)
+## Typical Local Usage
 
-## Current source behavior
+```bash
+csma-ssma --template-source local \
+  --csma-path /home/aurel/Documents/CSMA-SSMA/CSMA \
+  --ssma-path /home/aurel/Documents/CSMA-SSMA/SSMA
+```
 
-- Local source mode is fully implemented.
-- GitHub source mode is implemented via shallow `git clone` into a temp cache.
-- For GitHub mode, pass repo slugs:
-  - `--csma-repo <owner/repo>`
-  - `--ssma-repo <owner/repo>`
-- Or set environment variables:
-  - `CSMA_REPO`
-  - `SSMA_REPO`
-- Generated CSMA scaffolds are starter-focused:
-  - component showcase/docs pages are removed by default
-  - template docs/source demo pages are not copied into the generated app
-  - platform-specific shells are selected automatically when matching manifests exist (`capacitor`, `neutralino`)
+## Typical GitHub Usage
 
-## Module Selection Rules
+```bash
+csma-ssma --template-source github \
+  --csma-repo yagaltd/CSMA \
+  --ssma-repo yagaltd/SSMA
+```
 
-- For `csma-ssma` architecture, these modules are required and auto-selected:
-  - `network-status`
-  - `sync-queue`
-  - `optimistic-sync`
-- Optional modules include quick selectors:
-  - `All optional modules`
-  - `None optional modules`
-- UI components are always optional (never compulsory) and include quick selectors:
-  - `All optional items`
-  - `None optional items`
-- UI patterns are always optional (never compulsory) and include quick selectors:
-  - `All optional items`
-  - `None optional items`
+Optional: pin a branch/tag/commit with `--template-ref <ref>`.
 
-`sync-queue` is not universally required for all CSMA projects, but it is enforced in `csma-ssma` mode so generated full-stack scaffolds are offline/sync ready by default.
+## Non-Interactive Mode
 
-## SSMA Store Adapter
+```bash
+csma-ssma --yes --architecture csma-ssma --platform capacitor --project-name my-app
+```
 
-`Intent Store Adapter` supports:
+## Help
 
-- `none` (manual configuration later)
-- `file`
-- `sqlite`
+```bash
+csma-ssma --help
+```
 
-Generated SSMA projects now include `.env.example` only.
-Copy it to `.env` and configure values for your environment.
-
-## SSMA Toy Backend Simulator
-
-- Optional SSMA JS example used for local integration testing.
-- Prompted as: `Include toy backend simulator example? (SSMA dev/test helper)`
-- Default is `false`.
-
-## Testing
+## Development Tests
 
 ```bash
 npm test
