@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guide for projects scaffolded with CSMA (frontend) and SSMA (backend).
+This file guides coding agents for projects scaffolded with CSMA (frontend) and SSMA (backend).
 
 ## 1) Mission
 
@@ -10,76 +10,87 @@ Build maintainable, secure, testable applications using:
 
 Prioritize correctness, explicit contracts, and incremental change.
 
-## 2) Architecture Summary
+## 2) Required Architecture Rules
 
-### CSMA (frontend)
-- EventBus-based module orchestration.
-- Feature-flag driven module loading in `src/config.js`.
-- Modules live under `src/modules/<module-name>/`.
-- UI primitives/patterns live under `src/ui/components` and `src/ui/patterns`.
-- Keep state transitions predictable and event-driven.
+### CSMA (frontend) - REQUIRED
+- Use EventBus-based orchestration.
+- Keep module boundaries strict: no direct module-to-module coupling.
+- Keep feature-flag driven loading in `src/config.js`.
+- Place modules under `src/modules/<module-name>/`.
+- Place UI primitives/patterns under `src/ui/components` and `src/ui/patterns`.
 
-### SSMA (backend)
-- Gateway receives intents, validates contracts, persists state, forwards to backend.
-- Shared protocol/contracts under `packages/ssma-protocol` (in SSMA repo).
-- Runtime variants: JS and Rust.
-- Use `.env.example` as configuration template; avoid committing secrets.
+### SSMA (backend) - REQUIRED
+- All backend communication must go through SSMA gateway.
+- Validate all payloads against shared contracts.
+- Gateway handles validation, persistence, and forwarding.
+- Shared protocol/contracts live in `packages/ssma-protocol` (SSMA repo).
+- Runtime may be JS or Rust.
 
-## 3) Repo Structure (scaffolded project)
+## 3) Scaffolded Repo Shape
 
 Typical generated layout:
-- `src/` : CSMA app source
+- `src/` : CSMA source
 - `ssma/` : SSMA runtime (if selected)
-- `package.json` : top-level scripts (`dev`, `dev:ssma`, etc.)
+- `package.json` : top-level scripts
 
-## 4) Coding Rules for Agents
+## 4) Coding Rules
 
-- Respect current architecture and folder boundaries.
-- Prefer extending existing modules/services over introducing parallel patterns.
-- Do not introduce hidden coupling between modules.
-- Keep APIs/contracts explicit and versionable.
-- Keep diffs small and atomic.
-- Preserve user-facing behavior unless change is requested.
+- Respect architecture and folder boundaries.
+- Extend existing modules/services before adding parallel patterns.
+- Keep APIs/contracts explicit and versioned.
+- Keep diffs small, atomic, and behavior-preserving unless asked otherwise.
 
-## 5) Safety & Security
+## 5) Security Rules
 
-- Never commit credentials, tokens, keys, or real secrets.
+- Never commit secrets or private tokens.
 - Validate untrusted input at boundaries.
-- Fail closed for auth/permissions logic.
-- Keep secure defaults in config and docs.
+- Use secure defaults for auth/permissions/rate limits.
+- Prefer `.env.example`; generate `.env` only when needed by the user.
 
 ## 6) Testing Expectations
 
 For each feature/fix:
-- Add/adjust focused unit or integration tests.
-- Verify scaffold commands still work.
-- Ensure selected modules/features resolve without missing imports.
+- Add or adjust focused tests.
+- Verify selected modules/features do not create missing imports.
+- Verify scaffold output still runs for chosen architecture mode.
 
-Minimum checks before merging:
+Minimum merge checks:
 - Tests pass.
-- Generated project boots (`npm run dev` and/or `npm run dev:ssma` as applicable).
-- No broken file references from selected options.
+- No dead references from optional selections.
+- Docs updated when behavior/config changes.
 
-## 7) Agent Workflow
+## 7) Project-Specific Commands (Fill During /init)
+
+Replace this section with actual commands from generated `package.json` and `ssma/package.json`.
+
+Frontend:
+- `<fill: npm run dev>`
+- `<fill: npm run build>`
+
+Backend:
+- `<fill: npm run dev:ssma>`
+- `<fill: cd ssma && npm run test>`
+
+## 8) Current Project Configuration (Fill During /init)
+
+Document what is currently enabled for this generated project:
+- Architecture mode (`csma`, `ssma`, or `csma-ssma`)
+- Enabled modules
+- Enabled UI components/patterns
+- SSMA store adapter
+- Optional examples/simulators included
+
+## 9) Agent Workflow
 
 1. Read this file + project README.
-2. Identify architecture mode: `csma`, `ssma`, or `csma-ssma`.
-3. Locate affected modules/services.
-4. Implement smallest safe change.
-5. Run tests/verification.
-6. Update docs when behavior/config changes.
+2. Determine architecture mode and enabled selections.
+3. Implement smallest safe change.
+4. Run relevant checks.
+5. Update docs/contracts when needed.
 
-## 8) Common Pitfalls
+## 10) Common Pitfalls
 
-- Removing optional folders but leaving stale imports.
-- Changing module flags without matching runtime init paths.
-- Assuming SSMA examples are production components.
-- Treating generated scaffold as final architecture (it is a starting baseline).
-
-## 9) Notes for Generated Projects
-
-- If both front and backend are used, run both processes during development:
-  - `npm run dev`
-  - `npm run dev:ssma`
-- If only backend is used, run only SSMA command.
-- If only frontend is used, run only Vite command.
+- Leaving stale imports after optional folder removal.
+- Treating example/simulator code as production default.
+- Changing module flags without matching init/runtime paths.
+- Treating scaffold baseline as final architecture.
