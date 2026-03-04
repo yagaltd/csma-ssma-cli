@@ -29,12 +29,12 @@ describe('resolveTemplateRepos', () => {
     expect(result.ssmaRoot).toBe(ssma);
   });
 
-  it('throws for github source in MVP', async () => {
+  it('throws for github source when repo slugs are missing', async () => {
     await expect(
       resolveTemplateRepos(
         { templateSource: 'github', architecture: 'csma' },
         '/tmp/cli'
       )
-    ).rejects.toThrow(/not yet enabled/);
+    ).rejects.toThrow(/Missing CSMA repo/);
   });
 });

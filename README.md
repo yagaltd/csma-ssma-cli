@@ -21,6 +21,8 @@ csma-ssma
 - `--template-source <local|github>`
 - `--csma-path <path>`
 - `--ssma-path <path>`
+- `--csma-repo <owner/repo>` (GitHub mode)
+- `--ssma-repo <owner/repo>` (GitHub mode)
 - `--template-ref <tag|branch|sha>`
 - `--project-name <name>`
 - `--architecture <csma|ssma|csma-ssma>`
@@ -33,7 +35,13 @@ csma-ssma
 ## Current source behavior
 
 - Local source mode is fully implemented.
-- GitHub source mode is intentionally stubbed in MVP and returns a clear error.
+- GitHub source mode is implemented via shallow `git clone` into a temp cache.
+- For GitHub mode, pass repo slugs:
+  - `--csma-repo <owner/repo>`
+  - `--ssma-repo <owner/repo>`
+- Or set environment variables:
+  - `CSMA_REPO`
+  - `SSMA_REPO`
 - Generated CSMA scaffolds are starter-focused:
   - component showcase/docs pages are removed by default
   - template docs/source demo pages are not copied into the generated app

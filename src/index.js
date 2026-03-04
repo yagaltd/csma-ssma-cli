@@ -11,6 +11,8 @@ function parseArgs(argv) {
     if (token === '--template-source') args.templateSource = argv[++i];
     else if (token === '--csma-path') args.csmaPath = argv[++i];
     else if (token === '--ssma-path') args.ssmaPath = argv[++i];
+    else if (token === '--csma-repo') args.csmaRepo = argv[++i];
+    else if (token === '--ssma-repo') args.ssmaRepo = argv[++i];
     else if (token === '--template-ref') args.templateRef = argv[++i];
     else if (token === '--project-name') args.projectName = argv[++i];
     else if (token === '--architecture') args.architecture = argv[++i];
@@ -26,7 +28,7 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-  console.log(`csma-ssma\n\nOptions:\n  --template-source <local|github>\n  --csma-path <path>\n  --ssma-path <path>\n  --template-ref <tag|branch|sha>\n  --project-name <name>\n  --architecture <csma|ssma|csma-ssma>\n  --platform <web|capacitor|neutralino>\n  --agent-config <claude|agents|both|none> (default: both)\n  --ssma-store <none|file|sqlite>\n  --include-toy-backend\n  --yes\n`);
+  console.log(`csma-ssma\n\nOptions:\n  --template-source <local|github>\n  --csma-path <path>\n  --ssma-path <path>\n  --csma-repo <owner/repo>    (github mode)\n  --ssma-repo <owner/repo>    (github mode)\n  --template-ref <tag|branch|sha>\n  --project-name <name>\n  --architecture <csma|ssma|csma-ssma>\n  --platform <web|capacitor|neutralino>\n  --agent-config <claude|agents|both|none> (default: both)\n  --ssma-store <none|file|sqlite>\n  --include-toy-backend\n  --yes\n`);
 }
 
 export async function runCli(rootDir) {
