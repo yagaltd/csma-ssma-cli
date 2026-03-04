@@ -1,10 +1,10 @@
-# csma-ssma-cli
+# Interactive CLI to copy CSMA and SSMA
 
-Interactive scaffolder for CSMA/SSMA projects.
+Interactive scaffolder to start CSMA/SSMA projects.
 
-## Quick Start (Recommended)
+## Quick Start
 
-Use your CSMA/SSMA repos as template sources:
+Rune the following command to create your project.
 
 ```bash
 npx -y github:yagaltd/csma-ssma-cli \
