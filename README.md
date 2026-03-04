@@ -24,6 +24,8 @@ csma-ssma
 - `--template-ref <tag|branch|sha>`
 - `--project-name <name>`
 - `--architecture <csma|ssma|csma-ssma>`
+- `--agent-config <claude|agents|both|none>`
+- `--ssma-store <none|file|sqlite>`
 - `--yes` (non-interactive defaults)
 
 ## Current source behavior
@@ -40,6 +42,9 @@ csma-ssma
 - Optional modules include quick selectors:
   - `All optional modules`
   - `None optional modules`
+- UI components are always optional (never compulsory) and include quick selectors:
+  - `All optional items`
+  - `None optional items`
 - UI patterns are always optional (never compulsory) and include quick selectors:
   - `All optional items`
   - `None optional items`

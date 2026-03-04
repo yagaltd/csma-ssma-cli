@@ -98,7 +98,9 @@ export async function askProjectInfo(baseOptions, rootDir) {
       ssmaRuntime: architecture === 'ssma' || architecture === 'csma-ssma'
         ? (catalog.ssmaRuntimes[0]?.value || 'js')
         : undefined,
-      ssmaStore: architecture === 'ssma' || architecture === 'csma-ssma' ? 'file' : undefined,
+      ssmaStore: architecture === 'ssma' || architecture === 'csma-ssma'
+        ? (baseOptions.ssmaStore || 'file')
+        : undefined,
       modules: architecture === 'ssma' ? [] : requiredModulesForArchitecture(architecture),
       components: architecture === 'ssma' ? [] : [],
       patterns: architecture === 'ssma' ? [] : [],
@@ -106,7 +108,7 @@ export async function askProjectInfo(baseOptions, rootDir) {
         ? undefined
         : (catalog.csma.platforms[0]?.value || 'web'),
       includeExamples: false,
-      agentConfig: 'none',
+      agentConfig: baseOptions.agentConfig || 'none',
       templateCatalog: catalog
     };
     return defaults;
@@ -116,7 +118,7 @@ export async function askProjectInfo(baseOptions, rootDir) {
     {
       type: 'input',
       name: 'projectName',
-      message: 'Project name:',
+      message: 'Project name (letters, numbers, dot, underscore, hyphen only):',
       default: baseOptions.projectName || undefined,
       validate: (input) => input.length > 0 || 'Name is required'
     },
@@ -183,7 +185,15 @@ export async function askProjectInfo(baseOptions, rootDir) {
         type: 'checkbox',
         name: 'components',
         message: 'Select UI components:',
-        choices: catalog.csma.components
+        choices: buildOptionalChoices(catalog.csma.components),
+        validate: (selected) => {
+          try {
+            normalizeOptionalSelection(selected, catalog.csma.components);
+            return true;
+          } catch (error) {
+            return error.message;
+          }
+        }
       },
       {
         type: 'checkbox',
@@ -215,6 +225,7 @@ export async function askProjectInfo(baseOptions, rootDir) {
       }
     ]);
     csmaAnswers.modules = normalizeModuleSelection(csmaAnswers.modules, catalog.csma.modules, requiredModules);
+    csmaAnswers.components = normalizeOptionalSelection(csmaAnswers.components, catalog.csma.components);
     csmaAnswers.patterns = normalizeOptionalSelection(csmaAnswers.patterns, catalog.csma.patterns);
     Object.assign(answers, csmaAnswers);
   }
