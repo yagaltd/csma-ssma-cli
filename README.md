@@ -1,6 +1,4 @@
-# Interactive CLI to copy CSMA and SSMA
-
-Interactive scaffolder to start CSMA/SSMA projects.
+# Interactive CLI to start CSMA/SSMA projects.
 
 ## Quick Start
 
