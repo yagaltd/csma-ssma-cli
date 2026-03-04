@@ -1,6 +1,90 @@
 import inquirer from 'inquirer';
 import { loadTemplateCatalog } from './utils/templates.js';
 
+const SELECT_ALL = '__ALL__';
+const SELECT_NONE = '__NONE__';
+
+function requiredModulesForArchitecture(architecture) {
+  if (architecture === 'csma-ssma') {
+    return ['network-status', 'sync-queue', 'optimistic-sync'];
+  }
+  return [];
+}
+
+function buildModuleChoices(catalogModules, requiredModules) {
+  const requiredSet = new Set(requiredModules);
+  const requiredChoices = requiredModules.map((mod) => ({
+    name: `[Required] ${mod}`,
+    value: mod,
+    checked: true,
+    disabled: 'Required for CSMA + SSMA mode'
+  }));
+  const optionalChoices = catalogModules
+    .filter((choice) => !requiredSet.has(choice.value))
+    .map((choice) => ({
+      ...choice,
+      name: `[Optional] ${choice.name}`
+    }));
+
+  return [
+    { name: 'All optional modules', value: SELECT_ALL },
+    { name: 'None optional modules', value: SELECT_NONE },
+    ...requiredChoices,
+    ...optionalChoices
+  ];
+}
+
+function normalizeModuleSelection(selected, catalogModules, requiredModules) {
+  const requiredSet = new Set(requiredModules);
+  const optionalValues = catalogModules
+    .map((choice) => choice.value)
+    .filter((value) => !requiredSet.has(value));
+  const selectedSet = new Set(selected);
+
+  if (selectedSet.has(SELECT_ALL) && selectedSet.has(SELECT_NONE)) {
+    throw new Error('Cannot select both "All optional modules" and "None optional modules".');
+  }
+
+  if (selectedSet.has(SELECT_ALL)) {
+    return [...requiredModules, ...optionalValues];
+  }
+
+  if (selectedSet.has(SELECT_NONE)) {
+    return [...requiredModules];
+  }
+
+  const cleaned = selected.filter((value) => value !== SELECT_ALL && value !== SELECT_NONE);
+  const unique = Array.from(new Set([...requiredModules, ...cleaned]));
+  return unique;
+}
+
+function buildOptionalChoices(baseChoices, labelPrefix = '[Optional]') {
+  return [
+    { name: 'All optional items', value: SELECT_ALL },
+    { name: 'None optional items', value: SELECT_NONE },
+    ...baseChoices.map((choice) => ({
+      ...choice,
+      name: `${labelPrefix} ${choice.name}`
+    }))
+  ];
+}
+
+function normalizeOptionalSelection(selected, baseChoices) {
+  const selectedSet = new Set(selected);
+  const baseValues = baseChoices.map((choice) => choice.value);
+
+  if (selectedSet.has(SELECT_ALL) && selectedSet.has(SELECT_NONE)) {
+    throw new Error('Cannot select both "All optional items" and "None optional items".');
+  }
+  if (selectedSet.has(SELECT_ALL)) {
+    return [...baseValues];
+  }
+  if (selectedSet.has(SELECT_NONE)) {
+    return [];
+  }
+  return selected.filter((value) => value !== SELECT_ALL && value !== SELECT_NONE);
+}
+
 export async function askProjectInfo(baseOptions, rootDir) {
   const catalog = await loadTemplateCatalog(baseOptions, rootDir);
 
@@ -15,7 +99,7 @@ export async function askProjectInfo(baseOptions, rootDir) {
         ? (catalog.ssmaRuntimes[0]?.value || 'js')
         : undefined,
       ssmaStore: architecture === 'ssma' || architecture === 'csma-ssma' ? 'file' : undefined,
-      modules: architecture === 'ssma' ? [] : [],
+      modules: architecture === 'ssma' ? [] : requiredModulesForArchitecture(architecture),
       components: architecture === 'ssma' ? [] : [],
       patterns: architecture === 'ssma' ? [] : [],
       platform: architecture === 'ssma'
@@ -69,6 +153,7 @@ export async function askProjectInfo(baseOptions, rootDir) {
         name: 'ssmaStore',
         message: 'Intent Store Adapter:',
         choices: [
+          { name: 'None (configure manually later)', value: 'none' },
           { name: 'File (JSON files)', value: 'file' },
           { name: 'SQLite', value: 'sqlite' }
         ]
@@ -78,12 +163,21 @@ export async function askProjectInfo(baseOptions, rootDir) {
   }
 
   if (answers.architecture !== 'ssma') {
+    const requiredModules = requiredModulesForArchitecture(answers.architecture);
     const csmaAnswers = await inquirer.prompt([
       {
         type: 'checkbox',
         name: 'modules',
         message: 'Select modules:',
-        choices: catalog.csma.modules
+        choices: buildModuleChoices(catalog.csma.modules, requiredModules),
+        validate: (selected) => {
+          try {
+            normalizeModuleSelection(selected, catalog.csma.modules, requiredModules);
+            return true;
+          } catch (error) {
+            return error.message;
+          }
+        }
       },
       {
         type: 'checkbox',
@@ -95,7 +189,15 @@ export async function askProjectInfo(baseOptions, rootDir) {
         type: 'checkbox',
         name: 'patterns',
         message: 'Select UI patterns:',
-        choices: catalog.csma.patterns
+        choices: buildOptionalChoices(catalog.csma.patterns),
+        validate: (selected) => {
+          try {
+            normalizeOptionalSelection(selected, catalog.csma.patterns);
+            return true;
+          } catch (error) {
+            return error.message;
+          }
+        }
       },
       {
         type: 'list',
@@ -112,6 +214,8 @@ export async function askProjectInfo(baseOptions, rootDir) {
         default: false
       }
     ]);
+    csmaAnswers.modules = normalizeModuleSelection(csmaAnswers.modules, catalog.csma.modules, requiredModules);
+    csmaAnswers.patterns = normalizeOptionalSelection(csmaAnswers.patterns, catalog.csma.patterns);
     Object.assign(answers, csmaAnswers);
   }
 
