@@ -25,7 +25,7 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-  console.log(`csma-ssma\n\nOptions:\n  --template-source <local|github>\n  --csma-path <path>\n  --ssma-path <path>\n  --template-ref <tag|branch|sha>\n  --project-name <name>\n  --architecture <csma|ssma|csma-ssma>\n  --agent-config <claude|agents|both|none>\n  --ssma-store <none|file|sqlite>\n  --include-toy-backend\n  --yes\n`);
+  console.log(`csma-ssma\n\nOptions:\n  --template-source <local|github>\n  --csma-path <path>\n  --ssma-path <path>\n  --template-ref <tag|branch|sha>\n  --project-name <name>\n  --architecture <csma|ssma|csma-ssma>\n  --agent-config <claude|agents|both|none> (default: both)\n  --ssma-store <none|file|sqlite>\n  --include-toy-backend\n  --yes\n`);
 }
 
 export async function runCli(rootDir) {
@@ -45,12 +45,7 @@ export async function runCli(rootDir) {
     console.log(`Target: ${targetDir}`);
     console.log('\nNext steps:');
     console.log(`  cd ${options.projectName}`);
-    console.log('  npm install');
-    if (options.architecture !== 'ssma') {
-      console.log('  npm run dev');
-    } else {
-      console.log('  npm run dev:ssma');
-    }
+    console.log('  Run /init in Claude Code, Codex, or your coding agent CLI');
   } catch (error) {
     if (error?.message === 'ABORTED') {
       console.log('Cancelled by user');
