@@ -16,6 +16,7 @@ function parseArgs(argv) {
     else if (token === '--architecture') args.architecture = argv[++i];
     else if (token === '--agent-config') args.agentConfig = argv[++i];
     else if (token === '--ssma-store') args.ssmaStore = argv[++i];
+    else if (token === '--include-toy-backend') args.includeToyBackend = true;
     else if (token === '--yes') args.yes = true;
     else if (token === '-h' || token === '--help') args.help = true;
   }
@@ -24,7 +25,7 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-  console.log(`csma-ssma\n\nOptions:\n  --template-source <local|github>\n  --csma-path <path>\n  --ssma-path <path>\n  --template-ref <tag|branch|sha>\n  --project-name <name>\n  --architecture <csma|ssma|csma-ssma>\n  --agent-config <claude|agents|both|none>\n  --ssma-store <none|file|sqlite>\n  --yes\n`);
+  console.log(`csma-ssma\n\nOptions:\n  --template-source <local|github>\n  --csma-path <path>\n  --ssma-path <path>\n  --template-ref <tag|branch|sha>\n  --project-name <name>\n  --architecture <csma|ssma|csma-ssma>\n  --agent-config <claude|agents|both|none>\n  --ssma-store <none|file|sqlite>\n  --include-toy-backend\n  --yes\n`);
 }
 
 export async function runCli(rootDir) {

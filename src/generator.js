@@ -75,6 +75,71 @@ async function filterCsmaSelections(options, targetDir) {
   if (!options.includeExamples) {
     await fs.remove(path.join(targetDir, 'examples'));
   }
+
+  // Template scaffolds should not ship framework showcase/demo content by default.
+  await fs.remove(path.join(targetDir, 'docs'));
+  await fs.remove(path.join(targetDir, 'src', 'pages'));
+  await removeDemoHtmlFiles(path.join(targetDir, 'src', 'ui', 'components'));
+  await removeDemoHtmlFiles(path.join(targetDir, 'src', 'ui', 'patterns'));
+
+  await regenerateComponentCssIndex(options, targetDir);
+  await regenerateUiInit(targetDir);
+}
+
+async function removeDemoHtmlFiles(rootDir) {
+  if (!(await fs.pathExists(rootDir))) return;
+  const entries = await fs.readdir(rootDir, { withFileTypes: true });
+  for (const entry of entries) {
+    const full = path.join(rootDir, entry.name);
+    if (entry.isDirectory()) {
+      await removeDemoHtmlFiles(full);
+      continue;
+    }
+    if (entry.name.endsWith('.demo.html') || entry.name === 'demos.html') {
+      await fs.remove(full);
+    }
+  }
+}
+
+async function regenerateComponentCssIndex(options, targetDir) {
+  const components = options.components || [];
+  const patterns = options.patterns || [];
+  const lines = [
+    '/**',
+    ' * Generated component CSS index',
+    ' * Only imports selected component/pattern styles.',
+    ' */',
+    ''
+  ];
+
+  for (const component of components) {
+    lines.push(`@import './${component}/${component}.css';`);
+  }
+
+  // Keep sidebar style import if selected because original CSMA uses it in component index.
+  if (patterns.includes('sidebar')) {
+    lines.push(`@import '../patterns/sidebar/sidebar.css';`);
+  }
+
+  if (components.length === 0 && !patterns.includes('sidebar')) {
+    lines.push('/* No optional component or sidebar pattern styles selected. */');
+  }
+
+  lines.push('');
+  await fs.writeFile(path.join(targetDir, 'src', 'ui', 'components', 'index.css'), lines.join('\n'));
+}
+
+async function regenerateUiInit(targetDir) {
+  const content = `/**
+ * Generated minimal UI initializer.
+ * This scaffold keeps UI bootstrap dependency-free so component folders can be optional.
+ */
+export function initUI(_eventBus) {
+  console.log('[CSMA UI] Minimal init');
+  return {};
+}
+`;
+  await fs.writeFile(path.join(targetDir, 'src', 'ui', 'init.js'), content);
 }
 
 async function writeCsmaConfig(options, targetDir) {
@@ -167,9 +232,13 @@ if (import.meta.url === window.location.href) {
 }
 
 async function writeSsmaEnv(options, targetDir) {
+  const adapterLine = options.ssmaStore && options.ssmaStore !== 'none'
+    ? `SSMA_OPTIMISTIC_ADAPTER=${options.ssmaStore}`
+    : '# SSMA_OPTIMISTIC_ADAPTER is not set (configure manually)';
+
   const content = `PORT=3000
 HOST=localhost
-SSMA_OPTIMISTIC_ADAPTER=${options.ssmaStore || 'file'}
+${adapterLine}
 JWT_SECRET=change-me-in-production
 JWT_EXPIRY=7d
 BACKEND_URL=http://localhost:8080
@@ -178,6 +247,13 @@ RATE_LIMIT_WINDOW_MS=60000
 RATE_LIMIT_MAX_REQUESTS=100
 `;
   await fs.writeFile(path.join(targetDir, 'ssma', '.env'), content);
+}
+
+async function filterSsmaExamples(options, targetDir) {
+  if (options.includeToyBackend) {
+    return;
+  }
+  await fs.remove(path.join(targetDir, 'ssma', 'examples', 'toy-backend'));
 }
 
 async function writeAgentDocs(options, targetDir) {
@@ -272,6 +348,7 @@ export async function generateProject(options, rootDir, baseDir = process.cwd())
     const runtimeFolder = options.ssmaRuntime === 'rust' ? 'apps/ssma-rust' : 'apps/ssma-js';
     await fs.move(path.join(tempRuntime, runtimeFolder), path.join(targetDir, 'ssma'), { overwrite: true });
     await fs.remove(tempRuntime);
+    await filterSsmaExamples(options, targetDir);
     await writeSsmaEnv(options, targetDir);
   }
 

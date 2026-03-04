@@ -26,12 +26,16 @@ csma-ssma
 - `--architecture <csma|ssma|csma-ssma>`
 - `--agent-config <claude|agents|both|none>`
 - `--ssma-store <none|file|sqlite>`
+- `--include-toy-backend` (SSMA JS simulator example)
 - `--yes` (non-interactive defaults)
 
 ## Current source behavior
 
 - Local source mode is fully implemented.
 - GitHub source mode is intentionally stubbed in MVP and returns a clear error.
+- Generated CSMA scaffolds are starter-focused:
+  - component showcase/docs pages are removed by default
+  - template docs/source demo pages are not copied into the generated app
 
 ## Module Selection Rules
 
@@ -58,6 +62,12 @@ csma-ssma
 - `none` (manual configuration later)
 - `file`
 - `sqlite`
+
+## SSMA Toy Backend Simulator
+
+- Optional SSMA JS example used for local integration testing.
+- Prompted as: `Include toy backend simulator example? (SSMA dev/test helper)`
+- Default is `false`.
 
 ## Testing
 

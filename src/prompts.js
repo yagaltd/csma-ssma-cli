@@ -101,6 +101,7 @@ export async function askProjectInfo(baseOptions, rootDir) {
       ssmaStore: architecture === 'ssma' || architecture === 'csma-ssma'
         ? (baseOptions.ssmaStore || 'file')
         : undefined,
+      includeToyBackend: Boolean(baseOptions.includeToyBackend),
       modules: architecture === 'ssma' ? [] : requiredModulesForArchitecture(architecture),
       components: architecture === 'ssma' ? [] : [],
       patterns: architecture === 'ssma' ? [] : [],
@@ -159,6 +160,13 @@ export async function askProjectInfo(baseOptions, rootDir) {
           { name: 'File (JSON files)', value: 'file' },
           { name: 'SQLite', value: 'sqlite' }
         ]
+      },
+      {
+        type: 'confirm',
+        name: 'includeToyBackend',
+        message: 'Include toy backend simulator example? (SSMA dev/test helper)',
+        default: false,
+        when: (answers) => answers.ssmaRuntime === 'js'
       }
     ]);
     Object.assign(answers, ssmaAnswers);
