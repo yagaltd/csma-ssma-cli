@@ -22,10 +22,16 @@ Create a CLI tool that scaffolds new projects using CSMA (frontend) and/or SSMA 
 
 ### How CLI Fetches Templates
 
-MVP should be local-first (no GitHub required):
-- Default: copy from local paths (`CSMA_PATH`, `SSMA_PATH`, or sibling directories)
-- Optional: `--template-source github` to clone specific tag/release
-- Optional: `--latest` for cutting-edge templates
+The CLI is an orchestration layer and does not vendor templates.
+
+- Source of truth lives in template repos (`CSMA`, `SSMA`) under `templates/*/template.manifest.json`
+- Stage-gated default:
+  - Pre-public release testing: local-first (`--template-source local`)
+  - Public release default: GitHub-first (`--template-source github`)
+- Always support explicit override flags for development:
+  - `--template-source github|local`
+  - `--template-ref <tag|branch|sha>`
+  - `--csma-path <path>` and `--ssma-path <path>`
 
 ---
 
@@ -44,7 +50,8 @@ csma-ssma-cli/
 │   └── utils/
 │       ├── git.js            # Git operations
 │       ├── file.js           # File operations
-│       └── modules.js        # Module metadata
+│       ├── modules.js        # Module metadata
+│       └── templates.js      # Template manifest discovery/parsing
 ├── package.json
 └── README.md
 ```
@@ -86,8 +93,10 @@ runCli(rootDir);
 
 ```javascript
 import inquirer from 'inquirer';
+import { loadTemplateCatalog } from './utils/templates.js';
 
 export async function askProjectInfo() {
+  const catalog = await loadTemplateCatalog();
   const answers = await inquirer.prompt([
     {
       type: 'input',
@@ -105,11 +114,7 @@ export async function askProjectInfo() {
       type: 'list',
       name: 'architecture',
       message: 'Architecture:',
-      choices: [
-        { name: 'CSMA only (frontend only)', value: 'csma' },
-        { name: 'CSMA + SSMA (full stack)', value: 'csma-ssma' },
-        { name: 'SSMA only (backend only)', value: 'ssma' },
-      ],
+      choices: catalog.architectures,
     },
   ]);
 
@@ -156,94 +161,34 @@ async function askSSMAConfig() {
 }
 
 async function askCSMAConfig() {
+  const catalog = await loadTemplateCatalog();
   return inquirer.prompt([
     {
       type: 'checkbox',
       name: 'modules',
       message: 'Select modules:',
-      choices: [
-        { name: 'router - SPA routing', value: 'router' },
-        { name: 'storage - IndexedDB wrapper', value: 'storage' },
-        { name: 'i18n - Internationalization', value: 'i18n' },
-        { name: 'ai - Multi-provider AI orchestration', value: 'ai' },
-        { name: 'search - FlexSearch', value: 'search' },
-        { name: 'file-system - File System Access API', value: 'file-system' },
-        { name: 'camera - Photo/video capture', value: 'camera' },
-        { name: 'media-capture - Audio recording', value: 'media-capture' },
-        { name: 'location - Geolocation', value: 'location' },
-        { name: 'media-transform - Media conversions', value: 'media-transform' },
-        { name: 'image-optimizer - Image optimization', value: 'image-optimizer' },
-        { name: 'form-management - Form state management', value: 'form-management' },
-        { name: 'modal-system - Modal stack', value: 'modal-system' },
-        { name: 'checkout - Checkout flow', value: 'checkout' },
-        { name: 'data-table - Data table utilities', value: 'data-table' },
-        { name: 'network-status - Online/offline', value: 'network-status' },
-        { name: 'sync-queue - Background sync', value: 'sync-queue' },
-        { name: 'optimistic-sync - Optimistic sync', value: 'optimistic-sync' },
-        { name: 'static-render - Static rendering', value: 'static-render' },
-        { name: 'llm (service-only) - LLM instructor service', value: 'llm' },
-      ],
+      choices: catalog.csma.modules,
       when: (answers) => answers.architecture === 'csma' || answers.architecture === 'csma-ssma',
     },
     {
       type: 'checkbox',
       name: 'components',
       message: 'Select UI components:',
-      choices: [
-        { name: 'button', value: 'button' },
-        { name: 'input', value: 'input' },
-        { name: 'textarea', value: 'textarea' },
-        { name: 'select', value: 'select' },
-        { name: 'checkbox', value: 'checkbox' },
-        { name: 'radio', value: 'radio' },
-        { name: 'switch', value: 'switch' },
-        { name: 'slider', value: 'slider' },
-        { name: 'card', value: 'card' },
-        { name: 'dialog', value: 'dialog' },
-        { name: 'dropdown', value: 'dropdown' },
-        { name: 'popover', value: 'popover' },
-        { name: 'tooltip', value: 'tooltip' },
-        { name: 'toast', value: 'toast' },
-        { name: 'alert-dialog', value: 'alert-dialog' },
-        { name: 'avatar', value: 'avatar' },
-        { name: 'badge', value: 'badge' },
-        { name: 'progress', value: 'progress' },
-        { name: 'skeleton', value: 'skeleton' },
-        { name: 'tabs', value: 'tabs' },
-        { name: 'accordion', value: 'accordion' },
-        { name: 'breadcrumb', value: 'breadcrumb' },
-        { name: 'pagination', value: 'pagination' },
-        { name: 'carousel', value: 'carousel' },
-        { name: 'datepicker', value: 'datepicker' },
-        { name: 'file-upload', value: 'file-upload' },
-        { name: 'otp', value: 'otp' },
-        { name: 'navbar', value: 'navbar' },
-      ],
+      choices: catalog.csma.components,
       when: (answers) => answers.architecture === 'csma' || answers.architecture === 'csma-ssma',
     },
     {
       type: 'checkbox',
       name: 'patterns',
       message: 'Select UI patterns:',
-      choices: [
-        { name: 'sidebar', value: 'sidebar' },
-        { name: 'data-table', value: 'data-table' },
-        { name: 'modal-system', value: 'modal-system' },
-        { name: 'checkout', value: 'checkout' },
-        { name: 'auth-ui', value: 'auth-ui' },
-        { name: 'search-demo', value: 'search-demo' },
-      ],
+      choices: catalog.csma.patterns,
       when: (answers) => answers.architecture === 'csma' || answers.architecture === 'csma-ssma',
     },
     {
       type: 'list',
       name: 'platform',
       message: 'Platform:',
-      choices: [
-        { name: 'Web (default)', value: 'web' },
-        { name: 'Capacitor (iOS/Android)', value: 'capacitor' },
-        { name: 'Neutralino (Desktop)', value: 'neutralino' },
-      ],
+      choices: catalog.csma.platforms,
       when: (answers) => answers.architecture === 'csma' || answers.architecture === 'csma-ssma',
     },
     {
@@ -846,6 +791,10 @@ my-project/
 6. **MCP Server**
    - Optional MCP server for Claude Code integration
    - Generate project from within Claude Code
+
+7. **Manifest-Aware Compatibility**
+   - Warn on CLI/template compatibility mismatch using `compat.recommendedCli`
+   - Continue as best effort when required files are present
 
 ---
 
