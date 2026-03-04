@@ -15,5 +15,5 @@ npx -y github:yagaltd/csma-ssma-cli \
 
 ## Sources
 
-CSMA: https://github.com/yagaltd/CSMA
+CSMA: https://github.com/yagaltd/CSMA <br>
 SSMA: https://github.com/yagaltd/SSMA
