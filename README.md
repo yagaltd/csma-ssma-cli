@@ -1,19 +1,41 @@
 # csma-ssma-cli
 
-Orchestration layer for scaffolding projects from template-first `CSMA` and `SSMA` repositories.
+CLI orchestration tool for scaffolding projects from template-first `CSMA` and `SSMA` repositories.
 
-## Responsibilities
+## Install (local dev)
 
-- Discover available templates from `templates/*/template.manifest.json` in source repos.
-- Let developers choose architecture/runtime/features.
-- Copy only required source paths into a new project.
-- Generate agent guidance files (`CLAUDE.md` and/or `AGENTS.md`).
+```bash
+cd CLI
+npm install
+npm link
+```
 
-## Source Strategy
+Then run:
 
-- Pre-release testing: local-path source mode is allowed.
-- Public release default: GitHub source mode by tag/ref, with local override flags.
+```bash
+csma-ssma
+```
 
-## Compatibility
+## Options
 
-CLI should perform best-effort compatibility checks using template manifest metadata and warn on mismatch.
+- `--template-source <local|github>`
+- `--csma-path <path>`
+- `--ssma-path <path>`
+- `--template-ref <tag|branch|sha>`
+- `--project-name <name>`
+- `--architecture <csma|ssma|csma-ssma>`
+- `--yes` (non-interactive defaults)
+
+## Current source behavior
+
+- Local source mode is fully implemented.
+- GitHub source mode is intentionally stubbed in MVP and returns a clear error.
+
+## Testing
+
+```bash
+npm test
+npm run test:unit
+npm run test:integration
+npm run test:e2e
+```

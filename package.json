@@ -1,0 +1,23 @@
+{
+  "name": "csma-ssma-cli",
+  "version": "0.1.0",
+  "description": "Scaffold projects from CSMA/SSMA template-first repositories",
+  "type": "module",
+  "bin": {
+    "csma-ssma": "./bin/csma-ssma.js"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "vitest run tests/e2e",
+    "lint": "node -e \"console.log('no lint configured')\""
+  },
+  "dependencies": {
+    "fs-extra": "^11.2.0",
+    "inquirer": "^9.3.7"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.1"
+  }
+}
