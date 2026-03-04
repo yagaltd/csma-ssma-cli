@@ -109,7 +109,7 @@ export async function askProjectInfo(baseOptions, rootDir) {
         ? undefined
         : (catalog.csma.platforms[0]?.value || 'web'),
       includeExamples: false,
-      agentConfig: baseOptions.agentConfig || 'none',
+      agentConfig: baseOptions.agentConfig || 'both',
       templateCatalog: catalog
     };
     return defaults;
@@ -248,7 +248,8 @@ export async function askProjectInfo(baseOptions, rootDir) {
         { name: 'AGENTS.md', value: 'agents' },
         { name: 'Both', value: 'both' },
         { name: 'None', value: 'none' }
-      ]
+      ],
+      default: baseOptions.agentConfig || 'both'
     }
   ]);
 

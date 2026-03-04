@@ -24,7 +24,7 @@ csma-ssma
 - `--template-ref <tag|branch|sha>`
 - `--project-name <name>`
 - `--architecture <csma|ssma|csma-ssma>`
-- `--agent-config <claude|agents|both|none>`
+- `--agent-config <claude|agents|both|none>` (default: `both`)
 - `--ssma-store <none|file|sqlite>`
 - `--include-toy-backend` (SSMA JS simulator example)
 - `--yes` (non-interactive defaults)
@@ -62,6 +62,9 @@ csma-ssma
 - `none` (manual configuration later)
 - `file`
 - `sqlite`
+
+Generated SSMA projects now include `.env.example` only.
+Copy it to `.env` and configure values for your environment.
 
 ## SSMA Toy Backend Simulator
 
