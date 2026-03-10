@@ -1,96 +1,80 @@
 # AGENTS.md
 
-This file guides coding agents for projects scaffolded with CSMA (frontend) and SSMA (backend).
+This project was scaffolded from CSMA and/or SSMA templates. Treat the generated codebase as a starter baseline: inspect what exists first, then extend it with small, explicit changes.
 
-## 1) Mission
+## Mission
 
-Build maintainable, secure, testable applications using:
-- CSMA: Client-Side Microservices Architecture (frontend runtime + modules)
-- SSMA: Stable State Middleware Architecture (gateway for optimistic sync/backends)
+Build a maintainable, secure application on top of:
 
-Prioritize correctness, explicit contracts, and incremental change.
+- CSMA for frontend runtime, modules, services, and UI structure
+- SSMA for realtime gateway, optimistic sync, transport, and backend mediation
 
-## 2) Required Architecture Rules
+Prioritize correctness, contracts, and incremental delivery over broad rewrites.
 
-### CSMA (frontend) - REQUIRED
-- Use EventBus-based orchestration.
-- Keep module boundaries strict: no direct module-to-module coupling.
-- Keep feature-flag driven loading in `src/config.js`.
-- Place modules under `src/modules/<module-name>/`.
-- Place UI primitives/patterns under `src/ui/components` and `src/ui/patterns`.
+## Read First
 
-### SSMA (backend) - REQUIRED
-- All backend communication must go through SSMA gateway.
-- Validate all payloads against shared contracts.
-- Gateway handles validation, persistence, and forwarding.
-- Shared protocol/contracts live in `packages/ssma-protocol` (SSMA repo).
-- Runtime may be JS or Rust.
+Before making changes, inspect:
 
-## 3) Scaffolded Repo Shape
+- `README.md`
+- top-level `package.json`
+- `src/` when CSMA is present
+- `ssma/` when SSMA is present
+- copied CSMA and SSMA docs that ship with this scaffold
 
-Typical generated layout:
-- `src/` : CSMA source
-- `ssma/` : SSMA runtime (if selected)
-- `package.json` : top-level scripts
+Do not assume every generated project contains both frontend and backend pieces.
 
-## 4) Coding Rules
+## Working Rules
 
-- Respect architecture and folder boundaries.
-- Extend existing modules/services before adding parallel patterns.
-- Keep APIs/contracts explicit and versioned.
-- Keep diffs small, atomic, and behavior-preserving unless asked otherwise.
+- Respect the generated project structure before introducing new patterns
+- Prefer extending existing modules and services over creating parallel abstractions
+- Keep APIs, contracts, and event shapes explicit and versioned
+- Keep diffs small unless the task explicitly requires architectural change
+- Do not treat example or starter code as production-ready by default
 
-## 5) Security Rules
+## CSMA Rules
 
-- Never commit secrets or private tokens.
-- Validate untrusted input at boundaries.
-- Use secure defaults for auth/permissions/rate limits.
-- Prefer `.env.example`; generate `.env` only when needed by the user.
+When `src/` is present:
 
-## 6) Testing Expectations
+- Use EventBus-oriented orchestration and existing runtime boundaries
+- Keep module boundaries strict; avoid direct feature-to-feature coupling
+- Place feature work under `src/modules/<name>/` when it is module-level behavior
+- Place UI primitives and patterns under `src/ui/components/` and `src/ui/patterns/`
+- Follow the copied CSMA docs and local runtime/config conventions before changing bootstrap behavior
 
-For each feature/fix:
-- Add or adjust focused tests.
-- Verify selected modules/features do not create missing imports.
-- Verify scaffold output still runs for chosen architecture mode.
+## SSMA Rules
 
-Minimum merge checks:
-- Tests pass.
-- No dead references from optional selections.
-- Docs updated when behavior/config changes.
+When `ssma/` is present:
 
-## 7) Project-Specific Commands (Fill During /init)
+- Route backend-facing realtime behavior through SSMA gateway boundaries
+- Validate payloads against shared contracts and existing runtime expectations
+- Keep auth, persistence, replay, and transport concerns inside the gateway layer
+- Preserve runtime parity expectations when the scaffold includes SSMA JS or Rust sources
 
-Replace this section with actual commands from generated `package.json` and `ssma/package.json`.
+## Security and Operations
 
-Frontend:
-- `<fill: npm run dev>`
-- `<fill: npm run build>`
+- Never commit secrets, tokens, or filled `.env` files
+- Validate untrusted input at boundaries
+- Prefer `.env.example` for documented configuration
+- Keep auth, rate limits, and permission defaults conservative
 
-Backend:
-- `<fill: npm run dev:ssma>`
-- `<fill: cd ssma && npm run test>`
+## Workflow
 
-## 8) Current Project Configuration (Fill During /init)
+1. Inspect the generated structure and commands that actually exist
+2. Identify whether the task is frontend, backend, or full-stack
+3. Implement the smallest safe change that fits the scaffolded baseline
+4. Run the narrowest relevant checks
+5. Update docs or contracts when behavior changes
 
-Document what is currently enabled for this generated project:
-- Architecture mode (`csma`, `ssma`, or `csma-ssma`)
-- Enabled modules
-- Enabled UI components/patterns
-- SSMA store adapter
-- Optional examples/simulators included
+## Validation Expectations
 
-## 9) Agent Workflow
+- Tests or checks relevant to the edited behavior should pass
+- New code should not leave dead imports or stale references
+- Behavior/config changes should be reflected in docs when needed
+- Architecture changes should be deliberate, not accidental drift from the copied baseline
 
-1. Read this file + project README.
-2. Determine architecture mode and enabled selections.
-3. Implement smallest safe change.
-4. Run relevant checks.
-5. Update docs/contracts when needed.
+## Common Pitfalls
 
-## 10) Common Pitfalls
-
-- Leaving stale imports after optional folder removal.
-- Treating example/simulator code as production default.
-- Changing module flags without matching init/runtime paths.
-- Treating scaffold baseline as final architecture.
+- Replacing the scaffold baseline before understanding it
+- Introducing duplicate patterns instead of extending existing runtime/module structure
+- Treating generated examples as production architecture
+- Changing contracts or bootstrapping without updating the matching code paths

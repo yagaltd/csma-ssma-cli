@@ -109,7 +109,7 @@ export async function askProjectInfo(baseOptions, rootDir) {
         ? undefined
         : (baseOptions.platform || catalog.csma.platforms[0]?.value || 'web'),
       includeExamples: false,
-      agentConfig: baseOptions.agentConfig || 'both',
+      agentConfig: 'agents',
       templateCatalog: catalog
     };
     return defaults;
@@ -239,24 +239,10 @@ export async function askProjectInfo(baseOptions, rootDir) {
     Object.assign(answers, csmaAnswers);
   }
 
-  const agentAnswers = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'agentConfig',
-      message: 'Agent configuration:',
-      choices: [
-        { name: 'CLAUDE.md', value: 'claude' },
-        { name: 'AGENTS.md', value: 'agents' },
-        { name: 'Both', value: 'both' },
-        { name: 'None', value: 'none' }
-      ],
-      default: baseOptions.agentConfig || 'both'
-    }
-  ]);
-
   return {
     ...baseOptions,
     ...answers,
+    agentConfig: 'agents',
     templateCatalog: catalog
   };
 }

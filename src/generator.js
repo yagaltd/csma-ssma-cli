@@ -290,21 +290,12 @@ async function pruneEmptyDirs(rootDir) {
   }
 }
 
-async function copyAgentDocIfSelected(rootDir, targetDir, selection, optionName, sourceName, outputName) {
-  if (selection !== optionName && selection !== 'both') {
-    return;
-  }
-  const source = path.join(rootDir, sourceName);
-  if (!(await fs.pathExists(source))) {
-    throw new Error(`Missing required file for --agent-config ${optionName}: ${sourceName}`);
-  }
-  await fs.copyFile(source, path.join(targetDir, outputName));
-}
-
 async function writeAgentDocs(options, rootDir, targetDir) {
-  const selection = options.agentConfig || 'both';
-  await copyAgentDocIfSelected(rootDir, targetDir, selection, 'claude', 'CLAUDE.md', 'CLAUDE.md');
-  await copyAgentDocIfSelected(rootDir, targetDir, selection, 'agents', 'AGENTS.md', 'AGENTS.md');
+  const source = path.join(rootDir, 'AGENTS.md');
+  if (!(await fs.pathExists(source))) {
+    throw new Error('Missing required scaffold file: AGENTS.md');
+  }
+  await fs.copyFile(source, path.join(targetDir, 'AGENTS.md'));
 }
 
 async function writeRootPackageJson(options, targetDir) {
